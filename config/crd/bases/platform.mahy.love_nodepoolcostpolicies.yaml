@@ -1,0 +1,188 @@
+apiVersion: apiextensions.k8s.io/v1
+kind: CustomResourceDefinition
+metadata:
+  annotations:
+    controller-gen.kubebuilder.io/version: v0.19.0
+  name: nodepoolcostpolicies.platform.mahy.love
+spec:
+  group: platform.mahy.love
+  names:
+    kind: NodePoolCostPolicy
+    listKind: NodePoolCostPolicyList
+    plural: nodepoolcostpolicies
+    singular: nodepoolcostpolicy
+  scope: Cluster
+  versions:
+    - additionalPrinterColumns:
+        - jsonPath: .spec.poolID
+          name: Pool
+          type: string
+        - jsonPath: .spec.monthlyCap
+          name: Cap ($)
+          type: number
+        - jsonPath: .status.currentMonthlyCost
+          name: Est. Cost ($)
+          type: number
+        - jsonPath: .status.percentOfCap
+          name: '% of Cap'
+          type: number
+        - jsonPath: .status.lastAlertLevel
+          name: Alert
+          type: string
+        - jsonPath: .metadata.creationTimestamp
+          name: Age
+          type: date
+      name: v1alpha1
+      schema:
+        openAPIV3Schema:
+          description: NodePoolCostPolicy is the Schema for the nodepoolcostpolicies API.
+          properties:
+            apiVersion:
+              description: |-
+                APIVersion defines the versioned schema of this representation of an object.
+                Servers should convert recognized schemas to the latest internal value, and
+                may reject unrecognized values.
+                More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources
+              type: string
+            kind:
+              description: |-
+                Kind is a string value representing the REST resource this object represents.
+                Servers may infer this from the endpoint the client submits requests to.
+                Cannot be updated.
+                In CamelCase.
+                More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds
+              type: string
+            metadata:
+              type: object
+            spec:
+              description: NodePoolCostPolicySpec defines the desired state of NodePoolCostPolicy.
+              properties:
+                clusterID:
+                  description: clusterID is the DigitalOcean Kubernetes cluster UUID.
+                  minLength: 1
+                  type: string
+                hourlyCostPerNode:
+                  description: |-
+                    hourlyCostPerNode is the DigitalOcean hourly rate for a single node of this size, in USD.
+                    Monthly estimate = nodeCount * hourlyCostPerNode * 730.
+                  type: number
+                monthlyCap:
+                  description: |-
+                    monthlyCap is the maximum acceptable monthly cost in USD for this pool.
+                    An alert fires at 80% and again at 100%.
+                  type: number
+                nodeSize:
+                  description: |-
+                    nodeSize is a human-readable label for the node size (e.g. "s-8vcpu-16gb").
+                    Used only in Slack messages for context.
+                  minLength: 1
+                  type: string
+                poolID:
+                  description: poolID is the DigitalOcean node pool UUID to monitor.
+                  minLength: 1
+                  type: string
+              required:
+                - clusterID
+                - hourlyCostPerNode
+                - monthlyCap
+                - nodeSize
+                - poolID
+              type: object
+            status:
+              description: NodePoolCostPolicyStatus defines the observed state of NodePoolCostPolicy.
+              properties:
+                conditions:
+                  description: conditions represent the current state of the NodePoolCostPolicy resource.
+                  items:
+                    description: Condition contains details for one aspect of the current state of this API Resource.
+                    properties:
+                      lastTransitionTime:
+                        description: |-
+                          lastTransitionTime is the last time the condition transitioned from one status to another.
+                          This should be when the underlying condition changed.  If that is not known, then using the time when the API field changed is acceptable.
+                        format: date-time
+                        type: string
+                      message:
+                        description: |-
+                          message is a human readable message indicating details about the transition.
+                          This may be an empty string.
+                        maxLength: 32768
+                        type: string
+                      observedGeneration:
+                        description: |-
+                          observedGeneration represents the .metadata.generation that the condition was set based upon.
+                          For instance, if .metadata.generation is currently 12, but the .status.conditions[x].observedGeneration is 9, the condition is out of date
+                          with respect to the current state of the instance.
+                        format: int64
+                        minimum: 0
+                        type: integer
+                      reason:
+                        description: |-
+                          reason contains a programmatic identifier indicating the reason for the condition's last transition.
+                          Producers of specific condition types may define expected values and meanings for this field,
+                          and whether the values are considered a guaranteed API.
+                          The value should be a CamelCase string.
+                          This field may not be empty.
+                        maxLength: 1024
+                        minLength: 1
+                        pattern: ^[A-Za-z]([A-Za-z0-9_,:]*[A-Za-z0-9_])?$
+                        type: string
+                      status:
+                        description: status of the condition, one of True, False, Unknown.
+                        enum:
+                          - "True"
+                          - "False"
+                          - Unknown
+                        type: string
+                      type:
+                        description: type of condition in CamelCase or in foo.example.com/CamelCase.
+                        maxLength: 316
+                        pattern: ^([a-z0-9]([-a-z0-9]*[a-z0-9])?(\.[a-z0-9]([-a-z0-9]*[a-z0-9])?)*/)?(([A-Za-z0-9][-A-Za-z0-9_.]*)?[A-Za-z0-9])$
+                        type: string
+                    required:
+                      - lastTransitionTime
+                      - message
+                      - reason
+                      - status
+                      - type
+                    type: object
+                  type: array
+                  x-kubernetes-list-map-keys:
+                    - type
+                  x-kubernetes-list-type: map
+                currentMonthlyCost:
+                  description: |-
+                    currentMonthlyCost is the estimated monthly cost in USD based on the last poll.
+                    Calculated as currentNodeCount * hourlyCostPerNode * 730.
+                  type: number
+                currentNodeCount:
+                  description: currentNodeCount is the node count reported by the DigitalOcean API on the last poll.
+                  type: integer
+                lastAlertLevel:
+                  description: |-
+                    lastAlertLevel is the threshold level at which the most recent threshold alert was sent.
+                    One of: "" (none), "warning" (>=80%), "critical" (>=100%).
+                  type: string
+                lastAlertSentAt:
+                  description: lastAlertSentAt is the timestamp at which the last threshold alert was sent.
+                  format: date-time
+                  type: string
+                lastDigestSentAt:
+                  description: lastDigestSentAt is the timestamp at which the last daily digest was sent.
+                  format: date-time
+                  type: string
+                lastPollTime:
+                  description: lastPollTime is the timestamp of the most recent successful DigitalOcean API poll.
+                  format: date-time
+                  type: string
+                percentOfCap:
+                  description: percentOfCap is currentMonthlyCost / monthlyCap * 100, rounded to two decimal places.
+                  type: number
+              type: object
+          required:
+            - spec
+          type: object
+      served: true
+      storage: true
+      subresources:
+        status: {}

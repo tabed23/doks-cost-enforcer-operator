@@ -1,0 +1,10 @@
+apiVersion: platform.mahy.love/v1alpha1
+kind: NodePoolCostPolicy
+metadata:
+  name: cost # cluster-scoped — no namespace
+spec:
+  clusterID: "YOUR-CLUSTER-UUID" # doctl kubernetes cluster list
+  poolID: "YOUR-POOL-UUID" # doctl kubernetes cluster node-pool list <clusterID>
+  nodeSize: "s-8vcpu-16gb"
+  hourlyCostPerNode: 0.143 # $96/mo ÷ 730 hrs
+  monthlyCap: 4000 # $4,000/mo alerting cap

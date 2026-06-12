@@ -1,0 +1,26 @@
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: doks-cost-enforcer-role
+rules:
+  # Our CRD (cluster-scoped)
+  - apiGroups: ["platform.mahy.love"]
+    resources: ["nodepoolcostpolicies"]
+    verbs: ["get", "list", "watch", "create", "update", "patch", "delete"]
+  - apiGroups: ["platform.mahy.love"]
+    resources: ["nodepoolcostpolicies/status"]
+    verbs: ["get", "update", "patch"]
+  - apiGroups: ["platform.mahy.love"]
+    resources: ["nodepoolcostpolicies/finalizers"]
+    verbs: ["update"]
+  # Leader election (configmaps + leases)
+  - apiGroups: [""]
+    resources: ["configmaps"]
+    verbs: ["get", "list", "watch", "create", "update", "patch", "delete"]
+  - apiGroups: ["coordination.k8s.io"]
+    resources: ["leases"]
+    verbs: ["get", "list", "watch", "create", "update", "patch", "delete"]
+  # Events
+  - apiGroups: [""]
+    resources: ["events"]
+    verbs: ["create", "patch"]

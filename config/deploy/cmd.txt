@@ -1,0 +1,35 @@
+#!/usr/bin/env bash
+# SealedSecrets — safe to commit after running this script.
+#
+# Prerequisites:
+#   brew install kubeseal
+#   kubectl context pointing at your DOKS cluster
+set -euo pipefail
+
+# ── DO Token ──────────────────────────────────────────────────────────────────
+kubectl create secret generic do-token \
+  --from-literal=token="YOUR-DO-TOKEN-HERE" \
+  --namespace doks-cost-enforcer-system \
+  --dry-run=client -o yaml \
+  | kubeseal \
+    --controller-name sealed-secrets \
+    --controller-namespace vault \
+    --namespace doks-cost-enforcer-system \
+    --name do-token \
+    --format yaml > config/deploy/do-token-sealed.yaml
+
+echo "-> config/deploy/do-token-sealed.yaml"
+
+# ── Slack Webhook ─────────────────────────────────────────────────────────────
+kubectl create secret generic slack-webhook \
+  --from-literal=url="https://hooks.slack.com/services/YOUR/WEBHOOK/URL" \
+  --namespace doks-cost-enforcer-system \
+  --dry-run=client -o yaml \
+  | kubeseal \
+    --controller-name sealed-secrets \
+    --controller-namespace vault \
+    --namespace doks-cost-enforcer-system \
+    --name slack-webhook \
+    --format yaml > config/deploy/slack-webhook-sealed.yaml
+
+echo "-> config/deploy/slack-webhook-sealed.yaml"

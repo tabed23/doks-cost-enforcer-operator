@@ -1,0 +1,31 @@
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: manager-role
+rules:
+  - apiGroups:
+      - platform.mahy.love
+    resources:
+      - nodepoolcostpolicies
+    verbs:
+      - create
+      - delete
+      - get
+      - list
+      - patch
+      - update
+      - watch
+  - apiGroups:
+      - platform.mahy.love
+    resources:
+      - nodepoolcostpolicies/finalizers
+    verbs:
+      - update
+  - apiGroups:
+      - platform.mahy.love
+    resources:
+      - nodepoolcostpolicies/status
+    verbs:
+      - get
+      - patch
+      - update
